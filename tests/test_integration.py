@@ -12,6 +12,21 @@ from englog.core.file import read_daily_file
 runner = CliRunner()
 
 
+class TestTimerWorkflow:
+    """Integration test for complete timer workflow."""
+
+    def test_start_stop_persists_to_file(self, temp_englog_dir):
+        """Verify timer start/stop creates correct markdown entry."""
+        runner.invoke(app, ["time", "start", "Integration test @testing"])
+        runner.invoke(app, ["time", "stop"])
+
+        content = read_daily_file()
+        assert "## Time" in content
+        assert "Integration test" in content
+        assert "@testing" in content
+        assert "Duration:" in content
+
+
 class TestTodoWorkflow:
     """Integration test for complete todo workflow."""
 
