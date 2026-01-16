@@ -15,12 +15,12 @@ A minimalist CLI tool for software engineers to quickly capture workday data as 
 
 ### Time Tracking
 ```bash
-dl time start "task description @tag1 @tag2"   # Start tracking time (auto-stops current timer)
-dl time start 3                                # Restart timer by number (from list)
-dl time pause                                  # Pause current timer
-dl time resume                                 # Resume paused timer  
-dl time stop                                   # Stop and log current timer
-dl time list                                   # List all timers from today
+englog time start "task description @tag1 @tag2"   # Start tracking time (auto-stops current timer)
+englog time start 3                                # Restart timer by number (from list)
+englog time pause                                  # Pause current timer
+englog time resume                                 # Resume paused timer  
+englog time stop                                   # Stop and log current timer
+englog time list                                   # List all timers from today
 ```
 
 **Time Tracking Behavior:**
@@ -32,14 +32,14 @@ dl time list                                   # List all timers from today
 - **Always creates a new separate entry** (not a continuation)
 
 **Starting by number:**
-- Use timer number from `dl time list` output
+- Use timer number from `englog time list` output
 - Restarts that timer with exact description and tags
 - Auto-stops current active timer if any
 - **Creates a new separate entry** (not a continuation)
 
 **Time List Output:**
 ```bash
-$ dl time list
+$ englog time list
 
 1. Fix auth endpoints @api-refactor @backend @security (2h 22m)
 2. Debug memory leak @bug-fixes @performance (45m)
@@ -65,42 +65,42 @@ Total: 4h 47m
 - Tags parsed and stored in metadata (consistent with TIL/Notes/Scratch)
 
 **Error Handling:**
-- `dl time pause/resume/stop` with no active timer → Error: "No active timer"
-- `dl time resume` with no paused timer → Error: "No paused timer to resume"
-- `dl time start X` where X is invalid number → Error: "Timer #X not found"
-- `dl time list` with no timers today → Shows "No timers today"
+- `englog time pause/resume/stop` with no active timer → Error: "No active timer"
+- `englog time resume` with no paused timer → Error: "No paused timer to resume"
+- `englog time start X` where X is invalid number → Error: "Timer #X not found"
+- `englog time list` with no timers today → Shows "No timers today"
 
 **Examples:**
 ```bash
 # Start new timer
-$ dl time start "Fix auth bug @backend"
+$ englog time start "Fix auth bug @backend"
 Started: Fix auth bug
 
 # Switch to urgent task (auto-stops current)
-$ dl time start "Review security PR @code-review @urgent"
+$ englog time start "Review security PR @code-review @urgent"
 Stopped: Fix auth bug (1h 23m), Started: Review security PR
 
 # Finish urgent task
-$ dl time stop
+$ englog time stop
 Stopped: Review security PR (45m)
 
 # Check what you worked on today
-$ dl time list
+$ englog time list
 1. Fix auth bug @backend (1h 23m)
 2. Review security PR @code-review @urgent (45m)
 
 Total: 2h 8m
 
 # Restart by number (creates new entry)
-$ dl time start 1
+$ englog time start 1
 Started: Fix auth bug @backend
 
 # Work for a while...
-$ dl time stop
+$ englog time stop
 Stopped: Fix auth bug (2h 10m)
 
 # List shows separate entries
-$ dl time list
+$ englog time list
 1. Fix auth bug @backend (1h 23m)
 2. Review security PR @code-review @urgent (45m)
 3. Fix auth bug @backend (2h 10m)
@@ -108,21 +108,21 @@ $ dl time list
 Total: 4h 18m
 
 # Or restart by description (exact match, creates new entry)
-$ dl time start "Fix auth bug @backend"
+$ englog time start "Fix auth bug @backend"
 Started: Fix auth bug @backend
 
 # Pause for lunch (within same session)
-$ dl time pause
+$ englog time pause
 Paused: Fix auth bug (30m)
 
-$ dl time resume
+$ englog time resume
 Resumed: Fix auth bug
 
-$ dl time stop
+$ englog time stop
 Stopped: Fix auth bug (1h 15m)
 
 # Now have multiple sessions for same task
-$ dl time list
+$ englog time list
 1. Fix auth bug @backend (1h 23m)
 2. Review security PR @code-review @urgent (45m)
 3. Fix auth bug @backend (2h 10m)
@@ -135,7 +135,7 @@ Total: 5h 33m
 - Each restart is a **new, separate time entry**
 - Preserves timeline of when you actually worked
 - Same task can appear multiple times with different durations
-- Total time per task calculated in end-of-day processing or future `dl time report` command
+- Total time per task calculated in end-of-day processing or future `englog time report` command
 
 **Pause/Resume vs Restart:**
 - **Pause/Resume**: Short interruptions within the same work session (lunch, meeting)
@@ -166,12 +166,12 @@ Total: 5h 33m
 
 ### Todo Management
 ```bash
-dl todo add "task description @tag1 @tag2"      # Add to todo list
-dl todo doing "task description @tag1 @tag2"    # Move to doing by description match
-dl todo doing 2                                 # Move to doing by task number
-dl todo done "task description @tag1 @tag2"     # Mark as completed by description match
-dl todo done 3                                  # Mark as completed by task number
-dl todo list                                    # List all todos with numbers
+englog todo add "task description @tag1 @tag2"      # Add to todo list
+englog todo doing "task description @tag1 @tag2"    # Move to doing by description match
+englog todo doing 2                                 # Move to doing by task number
+englog todo done "task description @tag1 @tag2"     # Mark as completed by description match
+englog todo done 3                                  # Mark as completed by task number
+englog todo list                                    # List all todos with numbers
 ```
 
 **Todo Matching Behavior:**
@@ -180,20 +180,20 @@ Two ways to reference todos: **by description** or **by number**
 
 **By description (string argument):**
 - Exact match search (case-insensitive, tags can differ)
-- Example: `dl todo doing "Fix auth bug"` searches for match in Todo section
+- Example: `englog todo doing "Fix auth bug"` searches for match in Todo section
 - If match found: removes from previous section, adds to new section with current timestamp
 - If no match found: simply adds new entry to target section (allows direct to doing/done)
 
 **By number (integer argument):**
-- Use task number from `dl todo list` output
-- Example: `dl todo doing 2` moves task #2 to Doing
+- Use task number from `englog todo list` output
+- Example: `englog todo doing 2` moves task #2 to Doing
 - Searches across Todo and Doing sections only (Done items cannot transition)
 - If number not found: Error: "Task #X not found in Todo or Doing sections"
 - Numbers are ephemeral (recalculated on each `list` command, not stored in markdown)
 
 **Todo List Output:**
 ```bash
-$ dl todo list
+$ englog todo list
 
 Todo:
   1. Review PR #234 @code-review @api-refactor
@@ -215,46 +215,46 @@ Done:
 - Section order: Todo → Doing → Done
 
 **Error Handling:**
-- `dl todo doing/done X` where X is invalid number → Error: "Task #X not found in Todo or Doing sections"
-- `dl todo doing/done X` where X > highest number → Error: "Task #X not found in Todo or Doing sections"
-- `dl todo list` with no todos → Shows "No todos today"
+- `englog todo doing/done X` where X is invalid number → Error: "Task #X not found in Todo or Doing sections"
+- `englog todo doing/done X` where X > highest number → Error: "Task #X not found in Todo or Doing sections"
+- `englog todo list` with no todos → Shows "No todos today"
 
 **Examples:**
 ```bash
 # Full workflow with description matching
-dl todo add "Fix auth bug @backend"
-dl todo doing "Fix auth bug @backend"      # Matches & moves from Todo → Doing
-dl todo done "Fix auth bug @backend"       # Matches & moves from Doing → Done
+englog todo add "Fix auth bug @backend"
+englog todo doing "Fix auth bug @backend"      # Matches & moves from Todo → Doing
+englog todo done "Fix auth bug @backend"       # Matches & moves from Doing → Done
 
 # Using numbers (explicit reference)
-dl todo add "Review PR"
-dl todo add "Update docs"
-dl todo list                               # Shows: 1. Review PR, 2. Update docs
-dl todo doing 2                            # Moves task #2 to Doing
-dl todo list                               # Shows: 1. Review PR (Todo), 2. Update docs (Doing)
-dl todo done 2                             # Moves task #2 to Done
+englog todo add "Review PR"
+englog todo add "Update docs"
+englog todo list                               # Shows: 1. Review PR, 2. Update docs
+englog todo doing 2                            # Moves task #2 to Doing
+englog todo list                               # Shows: 1. Review PR (Todo), 2. Update docs (Doing)
+englog todo done 2                             # Moves task #2 to Done
 
 # Direct to done (no prior todo)
-dl todo done "Quick hotfix @urgent"        # No match, just adds to Done
+englog todo done "Quick hotfix @urgent"        # No match, just adds to Done
 
 # Partial workflow
-dl todo doing "Debug memory leak"          # No match in Todo, adds to Doing
-dl todo done "Debug memory leak"           # Matches from Doing → Done
+englog todo doing "Debug memory leak"          # No match in Todo, adds to Doing
+englog todo done "Debug memory leak"           # Matches from Doing → Done
 
 # Mixing numbered and description matching
-dl todo list                               # Check what's there
-dl todo doing 1                            # Move by number
-dl todo done "Some other task"             # Complete by description
+englog todo list                               # Check what's there
+englog todo doing 1                            # Move by number
+englog todo done "Some other task"             # Complete by description
 
 # Tags can differ in description matching
-dl todo add "Fix bug @backend"
-dl todo done "Fix bug @urgent @backend"    # Still matches (description is same)
+englog todo add "Fix bug @backend"
+englog todo done "Fix bug @urgent @backend"    # Still matches (description is same)
 ```
 
 ### TIL (Today I Learned)
 ```bash
-dl til "quick learning note @tag1 @tag2"   # Single-line TIL
-dl til --edit @tag1 @tag2                  # Multi-line TIL (opens $EDITOR)
+englog til "quick learning note @tag1 @tag2"   # Single-line TIL
+englog til --edit @tag1 @tag2                  # Multi-line TIL (opens $EDITOR)
 ```
 
 **Purpose:** Capture learnings, techniques, patterns, "aha moments" - knowledge you acquired that's worth remembering.
@@ -262,12 +262,12 @@ dl til --edit @tag1 @tag2                  # Multi-line TIL (opens $EDITOR)
 **Input Modes:**
 - **Single-line**: Tags parsed from the text itself
 ```bash
-  dl til "Python walrus operator simplifies comprehensions @python @tips"
+  englog til "Python walrus operator simplifies comprehensions @python @tips"
 ```
 
 - **Multi-line (no flag)**: Paste multiple lines, tags parsed from text
 ```bash
-  dl til "Git workflow tips:
+  englog til "Git workflow tips:
   - Use rebase for clean history
   - Fixup commits with --fixup
   @git @workflow"
@@ -275,7 +275,7 @@ dl til --edit @tag1 @tag2                  # Multi-line TIL (opens $EDITOR)
 
 - **Editor mode** (`--edit`): Opens `$EDITOR`, tags passed as CLI arguments added to metadata
 ```bash
-  dl til --edit @python @advanced
+  englog til --edit @python @advanced
   # Opens editor, write content, @python @advanced added to metadata on save
 ```
 
@@ -285,8 +285,8 @@ dl til --edit @tag1 @tag2                  # Multi-line TIL (opens $EDITOR)
 
 ### Notes
 ```bash
-dl note "quick note @tag1 @tag2"          # Single-line note
-dl note --edit @tag1 @tag2                 # Multi-line note (opens $EDITOR)
+englog note "quick note @tag1 @tag2"          # Single-line note
+englog note --edit @tag1 @tag2                 # Multi-line note (opens $EDITOR)
 ```
 
 **Purpose:** Dual use case for notes:
@@ -304,8 +304,8 @@ Same as TIL - single-line, multi-line paste, or `--edit` mode.
 
 ### Scratch
 ```bash
-dl scratch "temporary capture @tag1 @tag2"  # Single-line scratch
-dl scratch --edit @tag1 @tag2               # Multi-line scratch (opens $EDITOR)
+englog scratch "temporary capture @tag1 @tag2"  # Single-line scratch
+englog scratch --edit @tag1 @tag2               # Multi-line scratch (opens $EDITOR)
 ```
 
 **Purpose:** Ultra-ephemeral captures - things you need RIGHT NOW but will likely discard:
@@ -323,22 +323,22 @@ Same as TIL/Notes - single-line, multi-line paste, or `--edit` mode.
 
 ### Utility
 ```bash
-dl init                            # Initialize devlog directory
-dl status                          # Show overview: active timer, todo counts, time today
-dl edit                            # Open today's file in $EDITOR
-dl version                         # Show version
-dl --help                          # Show help
+englog init                            # Initialize englog directory
+englog status                          # Show overview: active timer, todo counts, time today
+englog edit                            # Open today's file in $EDITOR
+englog version                         # Show version
+englog --help                          # Show help
 ```
 
 **Init Command:**
-- Creates `$DEVLOG_DIR` directory (or `~/devlog` if not set)
-- If directory already exists, shows: "devlog directory already initialized: [path]"
+- Creates `$ENGLOG_DIR` directory (or `~/englog` if not set)
+- If directory already exists, shows: "englog directory already initialized: [path]"
 - Daily files are created automatically on first use each day
 - No config file or template files created
 
 **Status Command Output:**
 ```bash
-$ dl status
+$ englog status
 
 Active Timer:
   Debug memory leak @bug-fixes @performance
@@ -354,7 +354,7 @@ Todos:
 
 If no active timer:
 ```bash
-$ dl status
+$ englog status
 
 Active Timer: None
 
@@ -368,7 +368,7 @@ Todos:
 
 If no timers yet today:
 ```bash
-$ dl status
+$ englog status
 
 Active Timer: None
 
@@ -379,7 +379,7 @@ Todos: No todos today
 
 If completely empty (no timers, no todos):
 ```bash
-$ dl status
+$ englog status
 
 Active Timer: None
 
@@ -389,20 +389,20 @@ Todos: No todos today
 ```
 
 **Edit Command:**
-- Opens `$DEVLOG_DIR/YYYY-MM-DD.md` in `$EDITOR`
+- Opens `$ENGLOG_DIR/YYYY-MM-DD.md` in `$EDITOR`
 - Creates daily file with basic structure if it doesn't exist
 
 **Version Command:**
 ```bash
-$ dl version
-devlog 0.1.0
+$ englog version
+englog 0.1.0
 ```
 
 **Error Handling:**
-- `dl edit` and `$EDITOR` not set → Error: "EDITOR environment variable not set"
-- `dl edit` and today's file doesn't exist yet → Creates the file with basic structure, then opens it
-- `dl status` with no daily file yet → Shows "Active Timer: None", "Time Today: 0h 0m", and "Todos: No todos today"
-- `dl init` and cannot create directory → Error: "Cannot create directory: [path] ([reason])"
+- `englog edit` and `$EDITOR` not set → Error: "EDITOR environment variable not set"
+- `englog edit` and today's file doesn't exist yet → Creates the file with basic structure, then opens it
+- `englog status` with no daily file yet → Shows "Active Timer: None", "Time Today: 0h 0m", and "Todos: No todos today"
+- `englog init` and cannot create directory → Error: "Cannot create directory: [path] ([reason])"
 
 ## Tags
 
@@ -422,36 +422,36 @@ devlog 0.1.0
 ### Tag Examples
 ```bash
 # Time tracking with project tag
-dl time start "Fix auth endpoints @api-refactor @backend @security"
+englog time start "Fix auth endpoints @api-refactor @backend @security"
 
 # Multiple projects
-dl time start "Update shared utils @api-refactor @mobile-app @refactor"
+englog time start "Update shared utils @api-refactor @mobile-app @refactor"
 
 # No project (general tasks)
-dl time start "Email responses @admin"
+englog time start "Email responses @admin"
 
 # Todo with project context
-dl todo add "Review auth PR @api-refactor @code-review"
+englog todo add "Review auth PR @api-refactor @code-review"
 
 # TIL - single line
-dl til "OAuth flow handles token refresh @api-refactor @security"
+englog til "OAuth flow handles token refresh @api-refactor @security"
 
 # TIL - editor mode with tags
-dl til --edit @api-refactor @security
+englog til --edit @api-refactor @security
 # Content in editor, tags in metadata from CLI args
 
 # Note
-dl note "API endpoint: https://api.example.com @api @reference"
+englog note "API endpoint: https://api.example.com @api @reference"
 
 # Scratch for quick debug dump
-dl scratch --edit @error @debugging
+englog scratch --edit @error @debugging
 ```
 
 ## File Structure
 
 ### Directory Layout
 ```
-$DEVLOG_DIR/                       # Default: ~/devlog
+$ENGLOG_DIR/                       # Default: ~/englog
 ├── 2025-01-15.md                  # Single daily file
 ├── 2025-01-16.md
 └── 2025-01-17.md
@@ -536,12 +536,12 @@ Quick debug trace - memory usage spike at 3PM
 
 ### Environment Variables
 
-**`$DEVLOG_DIR`** (optional)
+**`$ENGLOG_DIR`** (optional)
 - Where daily markdown files are stored
-- Default: `~/devlog`
-- Example: `export DEVLOG_DIR=~/Documents/devlog`
+- Default: `~/englog`
+- Example: `export ENGLOG_DIR=~/Documents/englog`
 
-**`$EDITOR`** (required for `--edit` and `dl edit`)
+**`$EDITOR`** (required for `--edit` and `englog edit`)
 - Editor to use for multi-line input
 - Standard environment variable
 - Example: `export EDITOR=vim` or `export EDITOR=code --wait`
@@ -556,8 +556,8 @@ Quick debug trace - memory usage spike at 3PM
 
 ### No Config File
 
-devlog uses convention over configuration:
-- No `.devlogrc` or config file needed
+englog uses convention over configuration:
+- No `.englogrc` or config file needed
 - All settings via environment variables or fixed conventions
 - Simpler to use, one less thing to manage
 
@@ -572,11 +572,11 @@ devlog uses convention over configuration:
 
 ### Project Structure
 ```
-devlog/
+englog/
 ├── pyproject.toml
 ├── README.md
 ├── src/
-│   └── devlog/
+│   └── englog/
 │       ├── __init__.py
 │       ├── cli.py           # Main CLI entry point
 │       ├── commands/
@@ -605,14 +605,14 @@ devlog/
 
 **Core module details:**
 ```python
-# src/devlog/core/config.py
-def get_devlog_dir() -> Path:
-    """Get devlog directory from $DEVLOG_DIR or default to ~/devlog"""
+# src/englog/core/config.py
+def get_englog_dir() -> Path:
+    """Get englog directory from $ENGLOG_DIR or default to ~/englog"""
 
 def get_editor() -> str:
     """Get editor from $EDITOR, raise error if not set"""
 
-# src/devlog/core/file.py
+# src/englog/core/file.py
 def get_daily_file_path(date: Optional[date] = None) -> Path:
     """Get path to daily file, defaults to today"""
 
@@ -622,7 +622,7 @@ def ensure_daily_file_exists(date: Optional[date] = None) -> Path:
 def append_to_section(section: str, content: str) -> None:
     """Append content to a section, create section if needed"""
 
-# src/devlog/core/timer.py
+# src/englog/core/timer.py
 def get_active_timer() -> Optional[TimerEntry]:
     """Get currently active timer from today's file"""
 
@@ -650,7 +650,7 @@ def find_timer_by_description(description: str) -> Optional[TimerEntry]:
 def find_timer_by_number(number: int) -> Optional[TimerEntry]:
     """Find timer by list number (for restart)"""
 
-# src/devlog/core/todo.py
+# src/englog/core/todo.py
 def find_todo_by_description(description: str, section: str) -> Optional[TodoEntry]:
     """
     Find todo by exact description match (case-insensitive)
@@ -683,8 +683,8 @@ def move_todo(source_entry: TodoEntry, target_section: str) -> None:
 **Core Functionality:**
 - [ ] Project setup with uv
 - [ ] Basic CLI structure with typer
-- [ ] Environment variable handling ($DEVLOG_DIR, $EDITOR)
-- [ ] `init` command - create devlog directory
+- [ ] Environment variable handling ($ENGLOG_DIR, $EDITOR)
+- [ ] `init` command - create englog directory
 - [ ] Single daily file management (create/append to sections)
 - [ ] Tag parsing and formatting (consistent across all commands)
 - [ ] `note` command - single-line and multi-line notes with tags
@@ -729,7 +729,7 @@ def move_todo(source_entry: TodoEntry, target_section: str) -> None:
 
 ### Phase 3 - Polish & Release (v0.3.0)
 - [ ] Comprehensive error messages
-- [ ] Installation script with alias setup (`alias dl='devlog'`)
+- [ ] Installation script with alias setup (`alias el='englog'`)
 - [ ] README with examples and workflow guide
 - [ ] Contributing guide
 - [ ] Release documentation
@@ -742,20 +742,20 @@ def move_todo(source_entry: TodoEntry, target_section: str) -> None:
 - No paused timer for `resume` → "No paused timer to resume"
 - Invalid todo number → "Task #X not found in Todo or Doing sections"
 - Invalid timer number → "Timer #X not found"
-- Missing `$EDITOR` for `--edit` or `dl edit` → "EDITOR environment variable not set"
+- Missing `$EDITOR` for `--edit` or `englog edit` → "EDITOR environment variable not set"
 - Empty content after `--edit` → Warning: "Empty content, entry not created"
 
 ### File System Errors
-- Cannot create devlog directory → "Cannot create directory: [path] ([reason])"
+- Cannot create englog directory → "Cannot create directory: [path] ([reason])"
 - Cannot write to daily file → "Cannot write to file: [path] ([reason])"
 - Cannot read daily file → "Cannot read file: [path] ([reason])"
-- Today's file doesn't exist for `dl edit` → Create with basic structure, then open
+- Today's file doesn't exist for `englog edit` → Create with basic structure, then open
 
 ### Graceful Degradation
 - Daily file doesn't exist → Create on first command
 - Empty daily file → Create sections as needed
 - Empty sections → Show appropriate messages in `status` ("No todos today", "Time Today: 0h 0m")
-- `$DEVLOG_DIR` not set → Use `~/devlog` default
+- `$ENGLOG_DIR` not set → Use `~/englog` default
 - Directory already exists on `init` → Show friendly message, not error
 
 ### User-Friendly Error Messages
@@ -785,58 +785,58 @@ All errors should:
 
 11. **Init behavior**: Only creates directory, no template or config files
 
-12. **Version output**: `devlog 0.1.0` format
+12. **Version output**: `englog 0.1.0` format
 
 13. **Multi-line input**: Works without flags (paste multiple lines)
 
 14. **Timer restart**: Always creates new entry (separate sessions), not continuation
 
-15. **Time tracking**: Option A - separate entries with future `dl time report` for totals
+15. **Time tracking**: Option A - separate entries with future `englog time report` for totals
 
 16. **Status total time**: Show total time tracked today (sum of all timer durations)
 
 ## Future Considerations (Post-v1.0)
 
-- **`dl time report`** - Aggregate time by task/project/tag
+- **`englog time report`** - Aggregate time by task/project/tag
   - Show total time per task across multiple sessions
   - Example: "Fix auth bug: 4h 48m (3 sessions)"
   - Filter by date range, tag, project
-- `devlog search` - Simple grep wrapper
-- `devlog export` - Export to JSON/CSV
-- `devlog list --tag @python` - Filter by tag across all entry types
-- `devlog tags` - List all used tags with counts
-- `dl yesterday` / `dl open <date>` - View past days
-- `dl show` - Display today's file in terminal
-- `dl archive` - Archive old daily files
+- `englog search` - Simple grep wrapper
+- `englog export` - Export to JSON/CSV
+- `englog list --tag @python` - Filter by tag across all entry types
+- `englog tags` - List all used tags with counts
+- `englog yesterday` / `englog open <date>` - View past days
+- `englog show` - Display today's file in terminal
+- `englog archive` - Archive old daily files
 - Template support for custom formats
 - Git integration (auto-commit daily files)
 - Tag autocomplete from history
 - Fuzzy matching for todos (if exact match proves too strict)
-- `dl todo edit 3` - Edit todo by number
-- `dl todo delete 5` - Delete todo by number
-- `dl todo carry` - Copy unfinished todos to today
+- `englog todo edit 3` - Edit todo by number
+- `englog todo delete 5` - Delete todo by number
+- `englog todo carry` - Copy unfinished todos to today
 - Shell completions (bash, zsh, fish)
 
 ## End-of-Day Workflow
 
 The tool is designed for a processing workflow:
 
-1. **During the day**: Rapid capture with `dl` commands
+1. **During the day**: Rapid capture with `englog` commands
 ```bash
-   dl time start "Fix bug @backend"
-   dl til "Use pytest fixtures for test setup @python @testing"
-   dl note "New API endpoint deployed @api @reference"
-   dl scratch "Error investigating: connection timeout"
-   dl time list  # Review what you worked on
-   dl status     # Quick overview with total time
+   englog time start "Fix bug @backend"
+   englog til "Use pytest fixtures for test setup @python @testing"
+   englog note "New API endpoint deployed @api @reference"
+   englog scratch "Error investigating: connection timeout"
+   englog time list  # Review what you worked on
+   englog status     # Quick overview with total time
 ```
 
 2. **End of day**: Review your work
 ```bash
-   dl status                      # Quick overview
-   dl time list                   # See all work sessions with total
-   dl todo list                   # Review todos
-   dl edit                        # Open today's file for processing
+   englog status                      # Quick overview
+   englog time list                   # See all work sessions with total
+   englog todo list                   # Review todos
+   englog edit                        # Open today's file for processing
 ```
 
 3. **Process entries**: 
@@ -849,9 +849,9 @@ The tool is designed for a processing workflow:
 
 4. **Optional**: Archive or delete processed daily file
 ```bash
-   mv ~/devlog/2025-01-15.md ~/devlog/archive/
+   mv ~/englog/2025-01-15.md ~/englog/archive/
    # or
-   rm ~/devlog/2025-01-15.md
+   rm ~/englog/2025-01-15.md
 ```
 
 Daily files are ephemeral by design - they're optimized for capture speed, not permanent storage.
@@ -859,15 +859,15 @@ Daily files are ephemeral by design - they're optimized for capture speed, not p
 Tags provide consistent categorization across all entry types, making it easy to see all work related to a project or context.
 
 The todo system allows flexible workflows:
-- Quick capture: `dl todo done "Fix bug"` (matches or creates new)
-- Explicit reference: `dl todo list` then `dl todo done 3` (when you want to be precise)
+- Quick capture: `englog todo done "Fix bug"` (matches or creates new)
+- Explicit reference: `englog todo list` then `englog todo done 3` (when you want to be precise)
 - Mixed approach: Use both methods as needed throughout the day
 
 The time tracking system preserves your work timeline:
 - Each restart creates a new entry showing exactly when you worked
-- Use `dl time list` to see all sessions with total time
-- Use `dl status` for quick overview of total time today
-- Future `dl time report` will aggregate totals across sessions
+- Use `englog time list` to see all sessions with total time
+- Use `englog status` for quick overview of total time today
+- Future `englog time report` will aggregate totals across sessions
 - Honest representation of context switching
 
 The separation of til/note/scratch provides semantic meaning during capture, helping you categorize information instinctively without thinking.
@@ -875,73 +875,73 @@ The separation of til/note/scratch provides semantic meaning during capture, hel
 ## Installation & Setup
 ```bash
 # Install with uv
-uv pip install devlog
+uv pip install englog
 
-# Set up devlog directory (optional, defaults to ~/devlog)
-export DEVLOG_DIR=~/Documents/devlog
+# Set up englog directory (optional, defaults to ~/englog)
+export ENGLOG_DIR=~/Documents/englog
 
 # Set up editor (required for --edit commands)
 export EDITOR=vim  # or nano, code --wait, etc.
 
 # Initialize
-dl init
+englog init
 
 # Set up alias for even faster capture
-echo 'alias dl="devlog"' >> ~/.bashrc  # or ~/.zshrc
+echo 'alias el="englog"' >> ~/.bashrc  # or ~/.zshrc
 source ~/.bashrc
 
 # Start using
-dl time start "First task @project"
-dl til "Something I just learned @topic"
+englog time start "First task @project"
+englog til "Something I just learned @topic"
 ```
 
 ## Example Session
 ```bash
 # Morning - start tracking time
-$ dl time start "Review PRs @code-review"
+$ englog time start "Review PRs @code-review"
 Started: Review PRs
 
 # Add some todos
-$ dl todo add "Fix auth bug @backend @urgent"
-$ dl todo add "Update docs @documentation"
-$ dl todo add "Deploy to staging @devops"
+$ englog todo add "Fix auth bug @backend @urgent"
+$ englog todo add "Update docs @documentation"
+$ englog todo add "Deploy to staging @devops"
 
 # Switch tasks
-$ dl time start "Fix auth bug @backend"
+$ englog time start "Fix auth bug @backend"
 Stopped: Review PRs (45m), Started: Fix auth bug
 
 # Mark todo as doing
-$ dl todo doing "Fix auth bug"
+$ englog todo doing "Fix auth bug"
 
 # Capture a learning
-$ dl til "Python dataclasses support frozen=True for immutability @python @tips"
+$ englog til "Python dataclasses support frozen=True for immutability @python @tips"
 
 # Quick note
-$ dl note "New staging URL: https://staging.example.com @reference @devops"
+$ englog note "New staging URL: https://staging.example.com @reference @devops"
 
 # Complete the task
-$ dl time stop
+$ englog time stop
 Stopped: Fix auth bug (2h 15m)
 
-$ dl todo done "Fix auth bug"
+$ englog todo done "Fix auth bug"
 
 # Need to come back to code review later
-$ dl time list
+$ englog time list
 1. Review PRs @code-review (45m)
 2. Fix auth bug @backend (2h 15m)
 
 Total: 3h 0m
 
 # Restart code review by number
-$ dl time start 1
+$ englog time start 1
 Started: Review PRs @code-review
 
 # Work for a while...
-$ dl time stop
+$ englog time stop
 Stopped: Review PRs (1h 30m)
 
 # Check overall status
-$ dl status
+$ englog status
 Active Timer: None
 
 Time Today: 4h 30m
@@ -952,7 +952,7 @@ Todos:
   Done: 1 task
 
 # View all time entries (same task can appear multiple times)
-$ dl time list
+$ englog time list
 1. Review PRs @code-review (45m)
 2. Fix auth bug @backend (2h 15m)
 3. Review PRs @code-review (1h 30m)
@@ -960,5 +960,5 @@ $ dl time list
 Total: 4h 30m
 
 # End of day - review everything
-$ dl edit
+$ englog edit
 ```

@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(rm:*)",
+      "Bash(cat:*)",
+      "Bash(which:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run devlog --help:*)",
+      "Bash(uv run:*)",
+      "Bash(DEVLOG_DIR=/tmp/devlog-test uv run:*)",
+      "Bash(DEVLOG_DIR=/tmp/devlog-perf time uv run:*)",
+      "Bash(DEVLOG_DIR=/tmp/devlog-perf /usr/bin/time:*)",
+      "Bash(uv add:*)",
+      "Bash(make:*)",
+      "WebSearch",
+      "Bash(git mv:*)",
+      "Bash(englog --help:*)",
+      "Bash(git reset:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
