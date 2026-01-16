@@ -5,7 +5,7 @@ import subprocess
 import typer
 
 from englog import __version__
-from englog.commands import note, scratch, til
+from englog.commands import note, scratch, til, todo
 from englog.core.config import get_editor, get_englog_dir
 from englog.core.file import ensure_daily_file_exists
 
@@ -13,6 +13,9 @@ app = typer.Typer(
     help="Minimalist CLI for engineering workdays. Capture time tracking, todos, TILs, and notes as timestamped markdown.",
     no_args_is_help=True,
 )
+
+# Add subcommands
+app.add_typer(todo.app, name="todo", help="Todo management commands")
 
 
 @app.command()
