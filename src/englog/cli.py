@@ -5,9 +5,18 @@ import subprocess
 import typer
 
 from englog import __version__
-from englog.commands import note, scratch, til, todo
+from englog.commands import note, scratch, til, time, todo
 from englog.core.config import get_editor, get_englog_dir
 from englog.core.file import ensure_daily_file_exists
+from englog.core.tags import format_tags
+from englog.core.timer import calculate_total_time, get_active_timer
+from englog.core.todo import get_todo_counts
+from englog.utils.formatting import (
+    calculate_duration_minutes,
+    format_duration,
+    get_current_time,
+    pluralize,
+)
 
 app = typer.Typer(
     help="Minimalist CLI for engineering workdays. Capture time tracking, todos, TILs, and notes as timestamped markdown.",
@@ -15,6 +24,7 @@ app = typer.Typer(
 )
 
 # Add subcommands
+app.add_typer(time.app, name="time", help="Time tracking commands")
 app.add_typer(todo.app, name="todo", help="Todo management commands")
 
 
@@ -33,6 +43,33 @@ def init() -> None:
     except OSError as e:
         typer.echo(f"Cannot create directory: {englog_dir} ({e})", err=True)
         raise typer.Exit(1)
+
+
+@app.command()
+def status() -> None:
+    """Show overview: active timer, todo counts, time today."""
+    typer.echo("")
+    typer.echo("Active Timer:")
+    active = get_active_timer()
+    if active:
+        tags_str = format_tags(active.tags)
+        duration = calculate_duration_minutes(active.start_time, get_current_time())
+        typer.echo(f"  {active.description} {tags_str}")
+        typer.echo(f"  Started: {active.start_time} (running {format_duration(duration)})")
+    else:
+        typer.echo("  None")
+
+    typer.echo("")
+    typer.echo(f"Time Today: {format_duration(calculate_total_time())}")
+
+    typer.echo("")
+    typer.echo("Todos:")
+    counts = get_todo_counts()
+    if all(c == 0 for c in counts.values()):
+        typer.echo("  No todos today")
+    else:
+        for section in ("Todo", "Doing", "Done"):
+            typer.echo(f"  {section}: {counts[section]} {pluralize(counts[section], 'task')}")
 
 
 @app.command()
