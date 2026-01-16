@@ -12,6 +12,22 @@ from englog.core.file import read_daily_file
 runner = CliRunner()
 
 
+class TestTodoWorkflow:
+    """Integration test for complete todo workflow."""
+
+    def test_add_doing_done_persists_to_file(self, temp_englog_dir):
+        """Verify todo state transitions create correct markdown."""
+        runner.invoke(app, ["todo", "add", "Test task @work"])
+        runner.invoke(app, ["todo", "doing", "1"])
+        runner.invoke(app, ["todo", "done", "1"])
+
+        content = read_daily_file()
+        assert "## Todo" in content
+        assert "### Done" in content
+        assert "Test task" in content
+        assert "@work" in content
+
+
 class TestEntryWorkflow:
     """Integration test for entry commands."""
 
