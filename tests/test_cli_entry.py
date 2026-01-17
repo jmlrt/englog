@@ -12,7 +12,7 @@ runner = CliRunner()
 
 
 class TestTil:
-    """Tests for eltil CLI behavior."""
+    """Tests for englog til CLI behavior."""
 
     def test_success_output(self, temp_englog_dir):
         result = runner.invoke(app, ["til", "Learned something new"])
@@ -31,7 +31,7 @@ class TestTil:
 
 
 class TestNote:
-    """Tests for elnote CLI behavior."""
+    """Tests for englog note CLI behavior."""
 
     def test_success_output(self, temp_englog_dir):
         result = runner.invoke(app, ["note", "Important note"])
@@ -44,7 +44,7 @@ class TestNote:
 
 
 class TestScratch:
-    """Tests for elscratch CLI behavior."""
+    """Tests for englog scratch CLI behavior."""
 
     def test_success_output(self, temp_englog_dir):
         result = runner.invoke(app, ["scratch", "Quick capture"])

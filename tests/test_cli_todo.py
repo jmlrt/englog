@@ -12,7 +12,7 @@ runner = CliRunner()
 
 
 class TestTodoAdd:
-    """Tests for eltodo add CLI behavior."""
+    """Tests for englog todo add CLI behavior."""
 
     def test_success_output(self, temp_englog_dir):
         result = runner.invoke(app, ["todo", "add", "Test task"])
@@ -26,7 +26,7 @@ class TestTodoAdd:
 
 
 class TestTodoDoing:
-    """Tests for eltodo doing CLI behavior."""
+    """Tests for englog todo doing CLI behavior."""
 
     def test_not_found_by_number_exits_with_error(self, temp_englog_dir):
         result = runner.invoke(app, ["todo", "doing", "99"])
@@ -35,7 +35,7 @@ class TestTodoDoing:
 
 
 class TestTodoDone:
-    """Tests for eltodo done CLI behavior."""
+    """Tests for englog todo done CLI behavior."""
 
     def test_not_found_by_number_exits_with_error(self, temp_englog_dir):
         result = runner.invoke(app, ["todo", "done", "99"])
@@ -44,7 +44,7 @@ class TestTodoDone:
 
 
 class TestTodoList:
-    """Tests for eltodo list CLI behavior."""
+    """Tests for englog todo list CLI behavior."""
 
     def test_empty_list_message(self, temp_englog_dir):
         result = runner.invoke(app, ["todo", "list"])

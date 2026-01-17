@@ -12,7 +12,7 @@ runner = CliRunner()
 
 
 class TestTimeStart:
-    """Tests for eltime start CLI behavior."""
+    """Tests for englog time start CLI behavior."""
 
     def test_success_output(self, temp_englog_dir):
         result = runner.invoke(app, ["time", "start", "Test task"])
@@ -31,7 +31,7 @@ class TestTimeStart:
 
 
 class TestTimeStop:
-    """Tests for eltime stop CLI behavior."""
+    """Tests for englog time stop CLI behavior."""
 
     def test_no_active_timer_exits_with_error(self, temp_englog_dir):
         result = runner.invoke(app, ["time", "stop"])
@@ -40,7 +40,7 @@ class TestTimeStop:
 
 
 class TestTimePauseResume:
-    """Tests for eltime pause/resume CLI behavior."""
+    """Tests for englog time pause/resume CLI behavior."""
 
     def test_pause_no_timer_exits_with_error(self, temp_englog_dir):
         result = runner.invoke(app, ["time", "pause"])
@@ -52,7 +52,7 @@ class TestTimePauseResume:
 
 
 class TestTimeList:
-    """Tests for eltime list CLI behavior."""
+    """Tests for englog time list CLI behavior."""
 
     def test_empty_list_message(self, temp_englog_dir):
         result = runner.invoke(app, ["time", "list"])
