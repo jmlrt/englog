@@ -875,7 +875,7 @@ The separation of til/note/scratch provides semantic meaning during capture, hel
 ## Installation & Setup
 ```bash
 # Install with uv
-uv pip install englog
+uv tool install englog
 
 # Set up englog directory (optional, defaults to ~/englog)
 export ENGLOG_DIR=~/Documents/englog

@@ -20,7 +20,7 @@ cd englog
 uv sync
 
 # Or install globally
-uv pip install -e .
+uv tool install -e .
 ```
 
 ### Setup
