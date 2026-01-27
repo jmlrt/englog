@@ -106,9 +106,14 @@ def pause_timer(for_date: date | None = None) -> TimerEntry:
     if active.is_paused:
         raise ValueError("Timer is already paused")
 
+    paused_at = get_current_time()
     # Update file to mark as paused
-    _mark_timer_paused(active, for_date)
+    active.duration_minutes = max(
+        0, calculate_duration_minutes(active.start_time, paused_at) - active.paused_duration
+    )
+    _mark_timer_paused(active, paused_at, for_date)
 
+    active.is_active = False
     active.is_paused = True
     return active
 
@@ -119,9 +124,14 @@ def resume_timer(for_date: date | None = None) -> TimerEntry:
     if not paused:
         raise ValueError("No paused timer to resume")
 
+    resumed_at = get_current_time()
     # Update file to mark as active
-    _mark_timer_resumed(paused, for_date)
+    _mark_timer_resumed(paused, resumed_at, for_date)
 
+    paused.duration_minutes = max(
+        0, calculate_duration_minutes(paused.start_time, resumed_at) - paused.paused_duration
+    )
+    paused.is_active = True
     paused.is_paused = False
     return paused
 
@@ -149,17 +159,16 @@ def list_timers(for_date: date | None = None) -> list[TimerEntry]:
         is_paused = end_or_status == "[PAUSED]"
         end_time = None if is_active or is_paused else end_or_status
 
-        # Parse duration, handle "(running)" suffix
-        duration_str_clean = duration_str.replace(" (running)", "").replace(" (paused)", "")
+        # Parse duration, handle metadata suffix
+        duration_str_clean = duration_str.split(" (", 1)[0]
         duration = parse_duration(duration_str_clean)
+        paused_minutes = _parse_paused_minutes(duration_str)
 
         # For active timer, calculate current duration
         if is_active:
-            duration = calculate_duration_minutes(start_time, get_current_time())
-            # Check for paused duration in the entry
-            paused_match = re.search(r"paused: (\d+)m", content[match.start() :])
-            if paused_match:
-                duration -= int(paused_match.group(1))
+            duration = max(
+                0, calculate_duration_minutes(start_time, get_current_time()) - paused_minutes
+            )
 
         timers.append(
             TimerEntry(
@@ -171,6 +180,7 @@ def list_timers(for_date: date | None = None) -> list[TimerEntry]:
                 duration_minutes=duration,
                 is_active=is_active,
                 is_paused=is_paused,
+                paused_duration=paused_minutes,
             )
         )
 
@@ -219,7 +229,10 @@ def _update_timer_entry(
     old_pattern = rf"### {re.escape(timer.start_time)} - \[ACTIVE\] \| {re.escape(timer.description)} \| {re.escape(tags_str)}\n- Duration: [^\n]+"
     old_paused_pattern = rf"### {re.escape(timer.start_time)} - \[PAUSED\] \| {re.escape(timer.description)} \| {re.escape(tags_str)}\n- Duration: [^\n]+"
 
-    new_entry = f"### {timer.start_time} - {end_time} | {timer.description} | {tags_str}\n- Duration: {format_duration(duration)}"
+    new_entry = (
+        f"### {timer.start_time} - {end_time} | {timer.description} | {tags_str}\n- Duration: "
+        f"{format_duration(duration)}{_format_duration_metadata(None, timer.paused_duration)}"
+    )
 
     new_content = re.sub(old_pattern, new_entry, content)
     if new_content == content:
@@ -229,28 +242,84 @@ def _update_timer_entry(
     write_daily_file(new_content, for_date)
 
 
-def _mark_timer_paused(timer: TimerEntry, for_date: date | None = None) -> None:
+def _mark_timer_paused(timer: TimerEntry, paused_at: str, for_date: date | None = None) -> None:
     """Mark a timer as paused in the file."""
     content = read_daily_file(for_date)
     tags_str = format_tags(timer.tags)
 
     # Calculate current duration
-    current_duration = calculate_duration_minutes(timer.start_time, get_current_time())
+    current_duration = max(
+        0, calculate_duration_minutes(timer.start_time, paused_at) - timer.paused_duration
+    )
 
     old_pattern = rf"### {re.escape(timer.start_time)} - \[ACTIVE\] \| {re.escape(timer.description)} \| {re.escape(tags_str)}\n- Duration: [^\n]+"
-    new_entry = f"### {timer.start_time} - [PAUSED] | {timer.description} | {tags_str}\n- Duration: {format_duration(current_duration)} (paused)"
+    new_entry = (
+        f"### {timer.start_time} - [PAUSED] | {timer.description} | {tags_str}\n- Duration: "
+        f"{format_duration(current_duration)}"
+        f"{_format_duration_metadata('paused', timer.paused_duration, paused_at)}"
+    )
 
     new_content = re.sub(old_pattern, new_entry, content)
     write_daily_file(new_content, for_date)
 
 
-def _mark_timer_resumed(timer: TimerEntry, for_date: date | None = None) -> None:
+def _mark_timer_resumed(timer: TimerEntry, resumed_at: str, for_date: date | None = None) -> None:
     """Mark a paused timer as active again in the file."""
     content = read_daily_file(for_date)
     tags_str = format_tags(timer.tags)
 
-    old_pattern = rf"### {re.escape(timer.start_time)} - \[PAUSED\] \| {re.escape(timer.description)} \| {re.escape(tags_str)}\n- Duration: [^\n]+"
-    new_entry = f"### {timer.start_time} - [ACTIVE] | {timer.description} | {tags_str}\n- Duration: {format_duration(timer.duration_minutes)} (running)"
+    old_pattern = (
+        rf"### {re.escape(timer.start_time)} - \[PAUSED\] \| "
+        rf"{re.escape(timer.description)} \| {re.escape(tags_str)}\n- Duration: [^\n]+"
+    )
+    match = re.search(old_pattern, content)
+    paused_duration = timer.paused_duration
+    if match:
+        duration_line = match.group(0).split("\n- Duration: ", 1)[-1]
+        paused_at = _parse_paused_at(duration_line)
+        paused_duration += _calculate_pause_delta(paused_at, resumed_at)
+
+    timer.paused_duration = paused_duration
+    current_duration = max(
+        0, calculate_duration_minutes(timer.start_time, resumed_at) - paused_duration
+    )
+
+    new_entry = (
+        f"### {timer.start_time} - [ACTIVE] | {timer.description} | {tags_str}\n- Duration: "
+        f"{format_duration(current_duration)}"
+        f"{_format_duration_metadata('running', paused_duration)}"
+    )
 
     new_content = re.sub(old_pattern, new_entry, content)
     write_daily_file(new_content, for_date)
+
+
+def _parse_paused_minutes(duration_text: str) -> int:
+    match = re.search(r"paused:\s*(\d+)m", duration_text)
+    return int(match.group(1)) if match else 0
+
+
+def _parse_paused_at(duration_text: str) -> str | None:
+    match = re.search(r"paused at (\d{2}:\d{2})", duration_text)
+    return match.group(1) if match else None
+
+
+def _calculate_pause_delta(paused_at: str | None, resumed_at: str) -> int:
+    if not paused_at:
+        return 0
+    return calculate_duration_minutes(paused_at, resumed_at)
+
+
+def _format_duration_metadata(
+    state: str | None, paused_minutes: int, paused_at: str | None = None
+) -> str:
+    parts = []
+    if state:
+        parts.append(state)
+    if paused_at:
+        parts.append(f"paused at {paused_at}")
+    if paused_minutes > 0:
+        parts.append(f"paused: {paused_minutes}m")
+    if not parts:
+        return ""
+    return f" ({', '.join(parts)})"
