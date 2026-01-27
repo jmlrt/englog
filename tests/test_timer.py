@@ -74,6 +74,23 @@ class TestResumeTimer:
         with pytest.raises(ValueError, match="No paused timer"):
             resume_timer()
 
+    def test_pause_resume_tracks_paused_time(self, temp_englog_dir, monkeypatch):
+        ensure_daily_file_exists()
+        times = iter(["09:00", "10:10", "10:10", "10:20", "10:30", "10:30"])
+        monkeypatch.setattr("englog.core.timer.get_current_time", lambda: next(times, "10:30"))
+
+        start_timer("Test task", [])
+        pause_timer()
+        resume_timer()
+        timer = stop_timer()
+
+        assert timer.duration_minutes == 80
+        assert timer.paused_duration == 10
+
+        timers = list_timers()
+        assert timers[0].duration_minutes == 80
+        assert timers[0].paused_duration == 10
+
 
 class TestListTimers:
     def test_empty_list_when_no_timers(self, temp_englog_dir):
