@@ -145,7 +145,7 @@ def list_timers(for_date: date | None = None) -> list[TimerEntry]:
     timers = []
     # Pattern to match timer entries
     # Format: ### HH:MM - HH:MM | description | @tags OR ### HH:MM - [ACTIVE] | description | @tags
-    pattern = r"### (\d{2}:\d{2}) - (\[ACTIVE\]|\[PAUSED\]|\d{2}:\d{2}) \| ([^|]+) \| ([^\n]*)\n- Duration: ([^\n]+)"
+    pattern = r"### (\d{2}:\d{2}) - (\[ACTIVE\]|\[PAUSED\]|\d{2}:\d{2}) \| ([^|]+) \| ?([^\n]*)\n- Duration: ([^\n]+)"
 
     for idx, match in enumerate(re.finditer(pattern, content), 1):
         start_time = match.group(1)
