@@ -59,8 +59,8 @@ def normalize_quotes_in_commands(text: str) -> str:
     # Find all backtick-enclosed content and convert quotes within them
     def convert_quotes_in_backticks(match: re.Match[str]) -> str:
         content = match.group(1)
-        # Replace double quotes with single quotes, but preserve escaped quotes
-        converted = content.replace('"', "'")
+        # Replace unescaped double quotes with single quotes
+        converted = re.sub(r'(?<!\\)"', "'", content)
         return f"`{converted}`"
 
     return re.sub(r"`([^`]*)`", convert_quotes_in_backticks, text)

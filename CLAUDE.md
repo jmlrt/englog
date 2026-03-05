@@ -276,3 +276,11 @@ When appending to a section, the code ensures sections are created in order if t
 - All imports at top of file (no local imports inside functions)
 - Group: stdlib → third-party → local
 - Let ruff auto-sort with `ruff check --fix`
+
+## Development Practices
+
+When fixing a bug or inconsistency in one CLI command, proactively check ALL similar commands for the same issue before considering the task done. Do not wait for the user to ask twice.
+
+## Git Workflow
+
+When staging and committing changes, ensure ONLY changes from the current task are included. Review staged files against the current session scope before committing.
