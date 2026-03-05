@@ -92,12 +92,12 @@ class TestNormalizeQuotesInCommands:
         assert result == input_text
 
     def test_handles_empty_backticks(self):
-        input_text = 'Command: `` with text'
+        input_text = "Command: `` with text"
         result = normalize_quotes_in_commands(input_text)
         assert result == input_text
 
     def test_handles_mixed_quotes_in_command(self):
-        input_text = '`echo "double" and \'single\'`'
+        input_text = "`echo \"double\" and 'single'`"
         result = normalize_quotes_in_commands(input_text)
         # All double quotes become single, existing single quotes unchanged
         assert result == "`echo 'double' and 'single'`"
@@ -107,7 +107,7 @@ class TestNormalizeQuotesInCommands:
         input_text = '`echo \'{"key": "value"}\' | jq .`'
         result = normalize_quotes_in_commands(input_text)
         # Double quotes inside single quotes are preserved
-        assert result == "`echo '{\"key\": \"value\"}' | jq .`"
+        assert result == '`echo \'{"key": "value"}\' | jq .`'
 
     def test_handles_escaped_quotes(self):
         input_text = r'`echo \"escaped\" and "unescaped"`'
