@@ -240,6 +240,39 @@ Error output from failed deployment...
 | `ENGLOG_DIR` | Directory for daily files | `~/englog` |
 | `EDITOR` | Editor for `--edit` and `englog edit` | (required) |
 
+## Best Practices
+
+### Text Input & Quoting
+
+**Shell quoting for inline input:**
+- Use **double quotes** for text with contractions or single quotes:
+  ```bash
+  englog note "test doesn't work"          # ✅ Double quotes allow apostrophes
+  englog note 'test with "quotes"'         # ✅ Single quotes allow double quotes
+  englog note 'test doesn'"'"'t work'      # ⚠️ Complicated workaround
+  ```
+
+- Use **--edit flag** for complex or multi-line text:
+  ```bash
+  englog note --edit                       # Opens editor for natural text input
+  englog til --edit @python                # Multi-line TIL with tags
+  ```
+
+### Quoting in Command Documentation
+
+When documenting shell commands and variables in entries, single quotes are safer to prevent variable expansion:
+
+```bash
+# ✅ Good: Single quotes prevent variable expansion
+englog note "Command: echo 'my-value'"
+englog scratch "Variable: VAR='$HOME/path'"
+
+# ⚠️ Double quotes can cause unintended expansion
+englog note "Command: echo \"my-value\""
+```
+
+*Note: Quotes within backticks are automatically normalized to single quotes for safety.*
+
 ## License
 
 MIT
