@@ -60,6 +60,7 @@ def normalize_quotes_in_commands(text: str) -> str:
         Input: 'JSON: `echo \'{"key": "val"}\' | jq .`'
         Output: "JSON: `echo \'{'key': 'val'}\' | jq .`"  (preserves JSON quotes inside single-quoted substrings)
     """
+
     # Find all backtick-enclosed content and convert quotes within them
     def convert_quotes_in_backticks(match: re.Match[str]) -> str:
         content = match.group(1)
