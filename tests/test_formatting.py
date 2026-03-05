@@ -5,6 +5,7 @@ from englog.utils.formatting import (
     format_duration,
     get_current_time,
     get_today_date,
+    normalize_quotes_in_commands,
     parse_duration,
 )
 
@@ -65,3 +66,38 @@ class TestGetTodayDate:
         assert isinstance(result, str)
         assert len(result) == 10  # YYYY-MM-DD format
         assert result.count("-") == 2
+
+
+class TestNormalizeQuotesInCommands:
+    def test_converts_double_quotes_in_backticks(self):
+        input_text = 'Command: `echo "hello"`'
+        result = normalize_quotes_in_commands(input_text)
+        assert result == "Command: `echo 'hello'`"
+
+    def test_preserves_text_outside_backticks(self):
+        input_text = 'Use "double quotes" for strings but `echo "value"` in commands'
+        result = normalize_quotes_in_commands(input_text)
+        # Outer quotes should be preserved, backtick content converted
+        assert 'Use "double quotes"' in result
+        assert "`echo 'value'`" in result
+
+    def test_handles_multiple_backtick_commands(self):
+        input_text = '`command "arg1"` and `another "arg2"`'
+        result = normalize_quotes_in_commands(input_text)
+        assert result == "`command 'arg1'` and `another 'arg2'`"
+
+    def test_handles_no_backticks(self):
+        input_text = 'Just plain text with "double quotes"'
+        result = normalize_quotes_in_commands(input_text)
+        assert result == input_text
+
+    def test_handles_empty_backticks(self):
+        input_text = 'Command: `` with text'
+        result = normalize_quotes_in_commands(input_text)
+        assert result == input_text
+
+    def test_handles_mixed_quotes_in_command(self):
+        input_text = '`echo "double" and \'single\'`'
+        result = normalize_quotes_in_commands(input_text)
+        # All double quotes become single, existing single quotes unchanged
+        assert result == "`echo 'double' and 'single'`"

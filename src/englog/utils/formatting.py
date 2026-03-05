@@ -43,3 +43,24 @@ def pluralize(count: int, singular: str, plural: str | None = None) -> str:
     if plural is None:
         plural = singular + "s"
     return singular if count == 1 else plural
+
+
+def normalize_quotes_in_commands(text: str) -> str:
+    """Convert double quotes to single quotes in backtick-enclosed commands.
+
+    For safety when documenting shell commands, convert double quotes to single
+    quotes within backticks. Single quotes prevent variable expansion and are
+    safer for command documentation.
+
+    Example:
+        Input: 'Command: `echo "value"`'
+        Output: "Command: `echo 'value'`"
+    """
+    # Find all backtick-enclosed content and convert quotes within them
+    def convert_quotes_in_backticks(match: re.Match[str]) -> str:
+        content = match.group(1)
+        # Replace double quotes with single quotes, but preserve escaped quotes
+        converted = content.replace('"', "'")
+        return f"`{converted}`"
+
+    return re.sub(r"`([^`]*)`", convert_quotes_in_backticks, text)

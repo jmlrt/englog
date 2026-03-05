@@ -109,6 +109,24 @@ class TestListTimers:
         assert timers[1].description == "Task 2"
         assert timers[1].is_active is True
 
+    def test_parses_entry_without_trailing_space_after_pipe(self, temp_englog_dir, mock_editor):
+        """Test that entries missing space after final pipe are still parsed."""
+        from englog.core.file import write_daily_file
+
+        ensure_daily_file_exists()
+        # Manually write an entry without space after final pipe (edge case)
+        content = """# 2025-01-15
+
+## Time
+### 09:23 - 10:46 | Task description |@tag1
+- Duration: 1h 23m
+"""
+        write_daily_file(content)
+        timers = list_timers()
+        assert len(timers) == 1
+        assert timers[0].description == "Task description"
+        assert timers[0].tags == ["tag1"]
+
 
 class TestGetActiveTimer:
     def test_returns_none_when_no_active(self, temp_englog_dir):

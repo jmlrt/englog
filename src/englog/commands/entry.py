@@ -8,7 +8,7 @@ import typer
 from englog.core.config import get_editor
 from englog.core.file import append_to_section
 from englog.core.tags import extract_tags_from_text, format_tags
-from englog.utils.formatting import get_current_time
+from englog.utils.formatting import get_current_time, normalize_quotes_in_commands
 
 
 def create_entry_command(section: str, name: str):
@@ -37,6 +37,9 @@ def _add_inline(section: str, name: str, content: str) -> None:
     if not text:
         typer.echo("Warning: Empty content, entry not created", err=True)
         return
+
+    # Normalize quotes in commands for safety
+    text = normalize_quotes_in_commands(text)
 
     timestamp = get_current_time()
     tags_str = format_tags(tags)
@@ -69,6 +72,9 @@ def _add_with_editor(section: str, name: str, cli_tags: list[str]) -> None:
     if not content:
         typer.echo("Warning: Empty content, entry not created", err=True)
         return
+
+    # Normalize quotes in commands for safety
+    content = normalize_quotes_in_commands(content)
 
     timestamp = get_current_time()
     tags_str = format_tags(tags)
