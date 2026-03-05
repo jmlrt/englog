@@ -2,7 +2,7 @@
 
 import pytest
 
-from englog.core.file import ensure_daily_file_exists
+from englog.core.file import ensure_daily_file_exists, write_daily_file
 from englog.core.timer import (
     calculate_total_time,
     find_timer_by_description,
@@ -111,8 +111,6 @@ class TestListTimers:
 
     def test_parses_entry_without_trailing_space_after_pipe(self, temp_englog_dir):
         """Test that entries missing space after final pipe are still parsed."""
-        from englog.core.file import write_daily_file
-
         ensure_daily_file_exists()
         # Manually write an entry without space after final pipe (edge case)
         content = """# 2025-01-15

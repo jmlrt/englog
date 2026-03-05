@@ -101,3 +101,16 @@ class TestNormalizeQuotesInCommands:
         result = normalize_quotes_in_commands(input_text)
         # All double quotes become single, existing single quotes unchanged
         assert result == "`echo 'double' and 'single'`"
+
+    def test_preserves_double_quotes_inside_single_quotes(self):
+        # JSON inside single-quoted string should not have quotes converted
+        input_text = '`echo \'{"key": "value"}\' | jq .`'
+        result = normalize_quotes_in_commands(input_text)
+        # Double quotes inside single quotes are preserved
+        assert result == "`echo '{\"key\": \"value\"}' | jq .`"
+
+    def test_handles_escaped_quotes(self):
+        input_text = r'`echo \"escaped\" and "unescaped"`'
+        result = normalize_quotes_in_commands(input_text)
+        # Escaped quotes are preserved, unescaped converted
+        assert result == r"`echo \"escaped\" and 'unescaped'`"
