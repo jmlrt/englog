@@ -48,19 +48,48 @@ def pluralize(count: int, singular: str, plural: str | None = None) -> str:
 def normalize_quotes_in_commands(text: str) -> str:
     """Convert double quotes to single quotes in backtick-enclosed commands.
 
-    For safety when documenting shell commands, convert double quotes to single
-    quotes within backticks. Single quotes prevent variable expansion and are
-    safer for command documentation.
+    For safety when documenting shell commands, convert unescaped double quotes
+    to single quotes within backticks, but only when not inside single-quoted
+    substrings. Single quotes prevent variable expansion and are safer for
+    command documentation.
 
     Example:
         Input: 'Command: `echo "value"`'
         Output: "Command: `echo 'value'`"
+
+        Input: 'JSON: `echo \'{"key": "val"}\' | jq .`'
+        Output: "JSON: `echo \'{'key': 'val'}\' | jq .`"  (preserves JSON quotes inside single-quoted substrings)
     """
     # Find all backtick-enclosed content and convert quotes within them
     def convert_quotes_in_backticks(match: re.Match[str]) -> str:
         content = match.group(1)
-        # Replace unescaped double quotes with single quotes
-        converted = re.sub(r'(?<!\\)"', "'", content)
+        # Replace unescaped double quotes with single quotes, but avoid changing
+        # double quotes that appear inside single-quoted substrings.
+        result: list[str] = []
+        in_single = False
+        escaped = False
+        for ch in content:
+            if escaped:
+                # Current character is escaped; keep as-is and clear escape flag.
+                result.append(ch)
+                escaped = False
+                continue
+            if ch == "\\":
+                # Start escape for the next character.
+                result.append(ch)
+                escaped = True
+                continue
+            if ch == "'":
+                # Toggle single-quote context.
+                in_single = not in_single
+                result.append(ch)
+                continue
+            if ch == '"' and not in_single:
+                # Convert unescaped double quote outside single-quoted substrings.
+                result.append("'")
+            else:
+                result.append(ch)
+        converted = "".join(result)
         return f"`{converted}`"
 
     return re.sub(r"`([^`]*)`", convert_quotes_in_backticks, text)
