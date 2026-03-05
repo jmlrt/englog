@@ -27,7 +27,7 @@ class TestTil:
     def test_no_args_exits_with_error(self, temp_englog_dir):
         result = runner.invoke(app, ["til"])
         assert result.exit_code == 1
-        assert "Provide content or use --edit" in result.output
+        assert "use --edit flag" in result.output
 
 
 class TestNote:
