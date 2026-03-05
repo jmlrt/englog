@@ -31,8 +31,8 @@ def create_entry_command(section: str, name: str):
             typer.echo(
                 f"Error: Provide {name.lower()} content or use --edit flag\n"
                 f"Examples:\n"
-                f'  englog {section.lower()} "text with content"\n'
-                f'  englog {section.lower()} --edit  # Opens editor for natural text',
+                f'  englog {name.lower()} "text with content"\n'
+                f'  englog {name.lower()} --edit  # Opens editor for natural text',
                 err=True,
             )
             raise typer.Exit(1)

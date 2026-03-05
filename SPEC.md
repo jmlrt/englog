@@ -18,7 +18,7 @@ A minimalist CLI tool for software engineers to quickly capture workday data as 
 englog time start "task description @tag1 @tag2"   # Start tracking time (auto-stops current timer)
 englog time start 3                                # Restart timer by number (from list)
 englog time pause                                  # Pause current timer
-englog time resume                                 # Resume paused timer  
+englog time resume                                 # Resume paused timer
 englog time stop                                   # Stop and log current timer
 englog time list                                   # List all timers from today
 ```
@@ -772,7 +772,7 @@ All errors should:
    - **By number**: Dynamic numbering for Todo and Doing only (Done items not numbered)
    - Remove from previous section when moved (clean format)
    - If no match found (description only), simply add new entry
-   
+
 6. **Tag placement in files**: Tags on separate metadata line (after `|`)
 
 7. **Tag inheritance**: Tags parsed and stored in metadata for all commands (Time, Todo, TIL, Notes, Scratch)
@@ -839,7 +839,7 @@ The tool is designed for a processing workflow:
    englog edit                        # Open today's file for processing
 ```
 
-3. **Process entries**: 
+3. **Process entries**:
    - Extract completed todos to permanent task system
    - Move TILs to knowledge base organized by topic
    - Archive important notes/references to weekly notes

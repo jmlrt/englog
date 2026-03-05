@@ -29,7 +29,8 @@
       "Bash(rm -rf .ruff_cache:*)",
       "Bash(rm -rf dist:*)",
       "Bash(rm -rf build:*)",
-      "Bash(rm -rf *.egg-info:*)"
+      "Bash(rm -rf *.egg-info:*)",
+      "Skill(create-pr)"
     ],
     "deny": [
       "Bash(git push --force:*)",
