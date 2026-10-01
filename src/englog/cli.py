@@ -48,7 +48,7 @@ def start(
 ) -> None:
     """Start an entry, ending the running one: start [--at HH:MM] TITLE..."""
     day, now = _now()
-    text = " ".join(title)
+    text = " ".join(title).strip()
     with _exit_on_error():
         stopped = start_entry(day, text, parse_time(at) if at else now, now)
     if stopped:

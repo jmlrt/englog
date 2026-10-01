@@ -28,7 +28,10 @@ class TestParseTime:
     def test_valid(self, text, minutes):
         assert parse_time(text) == minutes
 
-    @pytest.mark.parametrize("text", ["", "9", "24:00", "09:60", "09:5", "ab:cd", "09:30:00"])
+    @pytest.mark.parametrize(
+        "text",
+        ["", "9", "24:00", "09:60", "09:5", "ab:cd", "09:30:00", "000:00", "0009:30", "٠٩:٣٠"],
+    )
     def test_invalid(self, text):
         with pytest.raises(ValueError, match="Invalid time"):
             parse_time(text)
@@ -137,11 +140,15 @@ class TestStartEntry:
             start_entry(DAY, "b", at=540, now=700)
         assert get_log_path(DAY).read_text() == "10:00 a\n"
 
-    @pytest.mark.parametrize("title", ["", "stop", "a\nb", "a\rb"])
+    @pytest.mark.parametrize("title", ["", "   ", "stop", " stop ", "a\nb", "a\rb"])
     def test_invalid_title_rejected(self, temp_englog_dir, title):
         with pytest.raises(ValueError):
             start_entry(DAY, title, at=540, now=540)
         assert not get_log_path(DAY).exists()
+
+    def test_title_is_stripped_before_writing(self, temp_englog_dir):
+        start_entry(DAY, "  day prep  ", at=540, now=540)
+        assert get_log_path(DAY).read_text() == "09:00 day prep\n"
 
     def test_malformed_file_is_not_modified(self, temp_englog_dir):
         get_log_path(DAY).write_text("10:00 a\n09:00 b\n")

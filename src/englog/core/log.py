@@ -5,6 +5,7 @@ next line starts; `HH:MM stop` ends the running entry without starting another. 
 never stored, only computed.
 """
 
+import re
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -12,6 +13,7 @@ from pathlib import Path
 from englog.core.config import get_englog_dir
 
 STOP = "stop"
+_TIME_RE = re.compile(r"([0-9]{1,2}):([0-9]{2})")  # ASCII digits only
 
 
 @dataclass(frozen=True)
@@ -33,13 +35,10 @@ class Entry:
 
 def parse_time(text: str) -> int:
     """Parse HH:MM (or H:MM) into minutes since midnight."""
-    hours_text, separator, minutes_text = text.partition(":")
-    if not (separator and hours_text.isdigit() and minutes_text.isdigit()):
+    match = _TIME_RE.fullmatch(text)
+    if match is None or int(match[1]) > 23 or int(match[2]) > 59:
         raise ValueError(f"Invalid time '{text}', expected HH:MM")
-    hours, minutes = int(hours_text), int(minutes_text)
-    if len(minutes_text) != 2 or hours > 23 or minutes > 59:
-        raise ValueError(f"Invalid time '{text}', expected HH:MM")
-    return hours * 60 + minutes
+    return int(match[1]) * 60 + int(match[2])
 
 
 def format_time(minute: int) -> str:
@@ -116,6 +115,7 @@ def _append(day: date, line: Line) -> None:
 
 def start_entry(day: date, title: str, at: int, now: int) -> Entry | None:
     """Append a start line; return the entry it ended, if one was running."""
+    title = title.strip()
     if not title:
         raise ValueError("Title cannot be empty")
     if title == STOP:

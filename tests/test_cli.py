@@ -54,13 +54,16 @@ class TestStart:
         assert result.exit_code == 1
         assert "in the future" in result.output
 
-    def test_empty_title(self, temp_englog_dir):
-        result = runner.invoke(app, ["start", ""])
+    @pytest.mark.parametrize("title", ["", "   "])
+    def test_empty_title(self, temp_englog_dir, title):
+        result = runner.invoke(app, ["start", title])
         assert result.exit_code == 1
         assert "empty" in result.output
+        assert not (temp_englog_dir / "2026-10-01.txt").exists()
 
-    def test_reserved_title(self, temp_englog_dir):
-        result = runner.invoke(app, ["start", "stop"])
+    @pytest.mark.parametrize("title", ["stop", " stop "])
+    def test_reserved_title(self, temp_englog_dir, title):
+        result = runner.invoke(app, ["start", title])
         assert result.exit_code == 1
         assert "reserved" in result.output
 
