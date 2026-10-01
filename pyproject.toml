@@ -1,7 +1,7 @@
 [project]
 name = "englog"
-version = "0.1.0"
-description = "Minimalist CLI for engineering workdays. Capture time tracking, todos, TILs, and notes as timestamped markdown."
+version = "0.2.0"
+description = "Minimalist CLI to log your workday as time entries in a plain text file."
 readme = "README.md"
 authors = [
     { name = "Julien Mailleret", email = "8582351+jmlrt@users.noreply.github.com" }
