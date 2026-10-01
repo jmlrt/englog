@@ -1,3 +1,3 @@
-"""englog - Minimalist CLI for engineering workdays."""
+"""englog - Minimalist CLI to log your workday as time entries."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

@@ -1,100 +1,126 @@
 """Main CLI entry point for englog."""
 
 import subprocess
+from collections.abc import Iterator
+from contextlib import contextmanager
+from datetime import date, datetime
 
 import typer
 
 from englog import __version__
-from englog.commands import note, scratch, til, time, todo
-from englog.core.config import get_editor, get_englog_dir
-from englog.core.file import ensure_daily_file_exists
-from englog.core.tags import format_tags
-from englog.core.timer import calculate_total_time, get_active_timer
-from englog.core.todo import get_todo_counts
-from englog.utils.formatting import (
-    calculate_duration_minutes,
-    format_duration,
-    get_current_time,
-    pluralize,
+from englog.core.config import get_editor
+from englog.core.log import (
+    build_entries,
+    find_running,
+    format_time,
+    get_log_path,
+    parse_time,
+    read_lines,
+    start_entry,
+    stop_entry,
 )
+from englog.utils.formatting import format_duration
 
 app = typer.Typer(
-    help="Minimalist CLI for engineering workdays. Capture time tracking, todos, TILs, and notes as timestamped markdown.",
+    help="Minimalist time log for engineering workdays.",
     no_args_is_help=True,
 )
 
-# Add subcommands
-app.add_typer(time.app, name="time", help="Time tracking commands")
-app.add_typer(todo.app, name="todo", help="Todo management commands")
+
+def _now() -> tuple[date, int]:
+    now = datetime.now()
+    return now.date(), now.hour * 60 + now.minute
+
+
+@contextmanager
+def _exit_on_error() -> Iterator[None]:
+    try:
+        yield
+    except ValueError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command(context_settings={"allow_interspersed_args": False})
+def start(
+    title: list[str] = typer.Argument(..., help="Entry title, no quotes needed"),
+    at: str | None = typer.Option(None, "--at", help="Start time HH:MM (default: now)"),
+) -> None:
+    """Start an entry, ending the running one: start [--at HH:MM] TITLE..."""
+    day, now = _now()
+    text = " ".join(title)
+    with _exit_on_error():
+        stopped = start_entry(day, text, parse_time(at) if at else now, now)
+    if stopped:
+        typer.echo(
+            f"Stopped: {stopped.title} ({format_duration(stopped.minutes(now))}), Started: {text}"
+        )
+    else:
+        typer.echo(f"Started: {text}")
 
 
 @app.command()
-def init() -> None:
-    """Initialize englog directory."""
-    englog_dir = get_englog_dir()
+def stop(
+    at: str | None = typer.Option(None, "--at", help="Stop time HH:MM (default: now)"),
+) -> None:
+    """Stop the running entry."""
+    day, now = _now()
+    with _exit_on_error():
+        stopped = stop_entry(day, parse_time(at) if at else now, now)
+    typer.echo(f"Stopped: {stopped.title} ({format_duration(stopped.minutes(now))})")
 
-    if englog_dir.exists():
-        typer.echo(f"englog directory already initialized: {englog_dir}")
+
+@app.command(name="list")
+def list_cmd() -> None:
+    """List today's entries with durations."""
+    day, now = _now()
+    with _exit_on_error():
+        entries = build_entries(read_lines(day))
+    if not entries:
+        typer.echo("No entries today")
         return
-
-    try:
-        englog_dir.mkdir(parents=True, exist_ok=True)
-        typer.echo(f"Initialized englog directory: {englog_dir}")
-    except OSError as e:
-        typer.echo(f"Cannot create directory: {englog_dir} ({e})", err=True)
-        raise typer.Exit(1)
+    for entry in entries:
+        end = "now" if entry.end is None else format_time(entry.end)
+        typer.echo(
+            f"{format_time(entry.start)}-{end} {entry.title} "
+            f"({format_duration(entry.minutes(now))})"
+        )
+    typer.echo("")
+    typer.echo(f"Total: {format_duration(sum(entry.minutes(now) for entry in entries))}")
 
 
 @app.command()
 def status() -> None:
-    """Show overview: active timer, todo counts, time today."""
-    typer.echo("")
-    typer.echo("Active Timer:")
-    active = get_active_timer()
-    if active:
-        tags_str = format_tags(active.tags)
-        duration = calculate_duration_minutes(active.start_time, get_current_time())
-        typer.echo(f"  {active.description} {tags_str}")
-        typer.echo(f"  Started: {active.start_time} (running {format_duration(duration)})")
+    """Show the running entry and today's total."""
+    day, now = _now()
+    with _exit_on_error():
+        entries = build_entries(read_lines(day))
+    running = find_running(entries)
+    if running:
+        typer.echo(
+            f"Running: {running.title} "
+            f"(since {format_time(running.start)}, {format_duration(running.minutes(now))})"
+        )
     else:
-        typer.echo("  None")
-
-    typer.echo("")
-    typer.echo(f"Time Today: {format_duration(calculate_total_time())}")
-
-    typer.echo("")
-    typer.echo("Todos:")
-    counts = get_todo_counts()
-    if all(c == 0 for c in counts.values()):
-        typer.echo("  No todos today")
-    else:
-        for section in ("Todo", "Doing", "Done"):
-            typer.echo(f"  {section}: {counts[section]} {pluralize(counts[section], 'task')}")
+        typer.echo("Running: none")
+    typer.echo(f"Time Today: {format_duration(sum(entry.minutes(now) for entry in entries))}")
 
 
 @app.command()
 def edit() -> None:
     """Open today's file in $EDITOR."""
-    try:
+    with _exit_on_error():
         editor = get_editor()
-    except ValueError as e:
-        typer.echo(str(e), err=True)
-        raise typer.Exit(1)
-
-    file_path = ensure_daily_file_exists()
-    subprocess.run([editor, str(file_path)])
+    path = get_log_path(_now()[0])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
+    subprocess.run([editor, str(path)])
 
 
 @app.command()
 def version() -> None:
     """Show version."""
     typer.echo(f"englog {__version__}")
-
-
-# Register simple commands
-app.command(name="til")(til.til_command)
-app.command(name="note")(note.note_command)
-app.command(name="scratch")(scratch.scratch_command)
 
 
 if __name__ == "__main__":
